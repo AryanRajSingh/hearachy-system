@@ -1,0 +1,297 @@
+/* ================================
+   Global Variables & Base Styles
+================================== */
+:root {
+  --bg: #0f1724;
+  --card: #0b1220;
+  --muted: #9aa4b2;
+  --accent: #7c5cff;
+  --glass: rgba(255, 255, 255, 0.03);
+
+    /* Light theme variables */
+  --bg-light: #f5f5f5;
+  --card-light: #ffffff;
+  --muted-light: #555555;
+  --accent-light: #7c5cff;
+  --glass-light: rgba(0,0,0,0.05);
+}
+/* Light theme class */
+.light-mode {
+  --bg: var(--bg-light);
+  --card: var(--card-light);
+  --muted: var(--muted-light);
+  --glass: var(--glass-light);
+  --accent: var(--accent-light);
+}
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+}
+
+body {
+  background: var(--bg);
+  color: var(--muted);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================================
+   Header / Top Bar
+================================== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), transparent);
+  backdrop-filter: blur(6px);
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  font-size: 1.15rem;
+}
+
+/* ================================
+   Buttons
+================================== */
+.btn {
+  background: var(--accent);
+  border: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn.outline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn.small {
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+}
+
+/* ================================
+   Layout Wrapper
+================================== */
+.wrap {
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  padding: 1rem;
+  min-height: 0;
+}
+
+/* ================================
+   Sidebar (Roles Section)
+================================== */
+.sidebar {
+  width: 260px;
+  min-width: 200px;
+  background: var(--card);
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(10, 12, 20, 0.6);
+}
+
+.sidebar h4 {
+  margin: 0 0 0.75rem 0;
+  color: var(--muted);
+}
+
+.roles {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem 0;
+  max-height: 45vh;
+  overflow: auto;
+}
+
+.roles li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  background: var(--glass);
+  margin-bottom: 0.45rem;
+}
+
+.role-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.role-actions input {
+  flex: 1;
+  padding: 0.45rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ================================
+   Board (Main Tree Area)
+================================== */
+.board {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree {
+  flex: 1;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+  border-radius: 12px;
+  padding: 1rem;
+  overflow: auto;
+}
+
+/* ================================
+   Node (Person Card)
+================================== */
+.node {
+  display: inline-block;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  margin: 0.5rem;
+  min-width: 160px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+
+.node .title {
+  font-weight: 700;
+}
+
+.node .meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.node-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.node button {
+  padding: 0.35rem 0.45rem;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  cursor: pointer;
+}
+
+.node-children {
+  margin-left: 1.4rem;
+  border-left: 2px dashed rgba(255, 255, 255, 0.02);
+  padding-left: 1rem;
+}
+
+/* ================================
+   Misc Elements
+================================== */
+.hint {
+  padding-top: 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.footer {
+  text-align: center;
+  padding: 0.6rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ================================
+   Modal (Add/Edit Person)
+================================== */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2, 6, 23, 0.6);
+}
+
+.modal-card {
+  background: linear-gradient(180deg, #071529, #071026);
+  padding: 1.1rem;
+  border-radius: 12px;
+  width: 320px;
+  box-shadow: 0 20px 50px rgba(2, 6, 23, 0.7);
+}
+
+.modal-card h3 {
+  margin: 0 0 0.6rem 0;
+}
+
+.modal-card label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.6rem;
+}
+
+.modal-card input,
+.modal-card select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: chartreuse;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.8rem;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ================================
+   Responsive Design
+================================== */
+@media (max-width: 800px) {
+  .wrap {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    display: flex;
+    order: 2;
+  }
+
+  .board {
+    order: 1;
+  }
+
+  .node {
+    min-width: 140px;
+  }
+}

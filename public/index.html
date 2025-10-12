@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OrgFlow — Company Hierarchy Manager</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3094/3094837.png" type="image/png" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- ================================
+       Header / Top Bar
+  ================================ -->
+  <header class="topbar">
+    <div class="brand">NG Group OrgFlow</div>
+    <div class="controls">
+      <button id="add-root" class="btn">＋ Add Top Role</button>
+      <button id="manage-roles" class="btn">Manage Roles</button>
+      <button id="full-tree" class="btn">View Full Tree</button>
+      <button id="view-projects" class="btn">My Projects</button>
+      <button id="view-industries" class="btn">Industries</button>
+      <button id="auth-btn" class="btn">Logout</button>
+      <button id="theme-toggle" class="btn small">🌙</button>
+    </div>
+  </header>
+
+  <!-- ================================
+       Main Layout
+  ================================ -->
+  <main class="wrap">
+    <!-- Sidebar (Roles Section) -->
+    <aside class="sidebar">
+      <h4>Roles</h4>
+      <ul id="roles-list" class="roles"></ul>
+
+      <div class="role-actions">
+        <input id="role-input" type="text" placeholder="New role (e.g. Manager)" />
+        <button id="add-role" class="btn small">Add</button>
+      </div>
+    </aside>
+
+    <!-- Main Board -->
+    <section class="board">
+      <div id="tree" class="tree"></div>
+      <div class="hint">
+        <!-- 💡 Tip: Click a person card to manage actions.  
+        Double-click a card to edit details quickly. -->
+      </div>
+    </section>
+  </main>
+
+  <!-- ================================
+       Modal (Add/Edit Person)
+  ================================ -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3 id="modal-title">Add Person</h3>
+
+      <label for="person-name">Person Name</label>
+      <input id="person-name" type="text" placeholder="e.g. Ananya Singh" />
+
+      <label for="person-role">Role</label>
+      <select id="person-role"></select>
+
+      <div class="modal-actions">
+        <button id="save-node" class="btn">Save</button>
+        <button id="cancel" class="btn outline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================
+       Footer
+  ================================ -->
+  <footer class="footer">
+    Built NG Group of Companies (formally Aryan's Industries)OrgFlow © 2025
+  </footer>
+
+  <!-- ================================
+       Script
+  ================================ -->
+  <script src="script.js"></script>
+  <script>
+    // ================================
+    // Role-based Access Control
+    // ================================
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+
+    if(!loggedInUser){
+      // No logged-in user → redirect to login page
+      window.location.href = 'auth.html';
+    }
+
+    const isAdmin = loggedInUser.role === 'admin';
+
+    // Hide all edit/add/delete/create UI elements for non-admin users
+    const addRootBtn = document.getElementById('add-root');
+    const manageRolesBtn = document.getElementById('manage-roles');
+    const roleActionsDiv = document.querySelector('.role-actions');
+    const modal = document.getElementById('modal');
+
+    if(!isAdmin){
+      addRootBtn.style.display = 'none';
+      manageRolesBtn.style.display = 'none';
+      roleActionsDiv.style.display = 'none';
+      modal.style.display = 'none';
+    }
+
+    // ================================
+    // Logout
+    // ================================
+    const authBtn = document.getElementById('auth-btn');
+    authBtn.textContent = 'Logout';
+    authBtn.addEventListener('click', ()=>{
+      localStorage.removeItem('loggedInUser');
+      window.location.href = 'auth.html';
+    });
+
+    // ================================
+    // Navigation Buttons
+    // ================================
+    document.getElementById('full-tree').addEventListener('click', ()=>{ window.location.href='tree.html'; });
+    document.getElementById('view-projects').addEventListener('click', ()=>{ window.location.href='projects.html'; });
+    document.getElementById('view-industries').addEventListener('click', ()=>{ window.location.href='industries.html'; });
+
+    // ================================
+    // Day/Night Toggle
+    // ================================
+    const themeBtn = document.getElementById('theme-toggle');
+    themeBtn.addEventListener('click', ()=>{
+      document.body.classList.toggle('light');
+      themeBtn.textContent = document.body.classList.contains('light') ? '🌙' : '☀️';
+    });
+
+    // ================================
+    // Create Person Cards (conditionally show Edit/Delete only for admin)
+    // ================================
+    function createPersonCard(person){
+      const card = document.createElement('div');
+      card.className = 'person-card';
+      card.innerHTML = `
+        <h4>${person.name}</h4>
+        <p>${person.role}</p>
+      `;
+
+      if(isAdmin){
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.className = 'btn small';
+        card.appendChild(editBtn);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.className = 'btn small';
+        card.appendChild(delBtn);
+      }
+
+      return card;
+    }
+
+    // Example usage:
+    // const tree = document.getElementById('tree');
+    // tree.appendChild(createPersonCard({name:'Ananya Singh', role:'Manager'}));
+  </script>
+</body>
+</html>

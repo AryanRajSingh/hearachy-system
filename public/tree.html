@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Full Company Tree</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --bg: #0f1724;
+      --bg-night: #f0f2f5;
+      --card: #0b1220;
+      --card-night: #ffffff;
+      --muted: #9aa4b2;
+      --muted-night: #555;
+      --accent: #7c5cff;
+      --accent-night: #7c5cff;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    body.light {
+      background: var(--bg-night);
+      color: var(--muted-night);
+    }
+
+    .header-controls {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      padding: 1rem 2rem;
+      gap: 0.5rem;
+      position: sticky;
+      top: 0;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+
+    body.light .header-controls {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .header-controls button {
+      padding: 0.5rem 0.8rem;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .header-controls button:hover {
+      opacity: 0.85;
+    }
+
+    #toggle-theme {
+      background: var(--accent);
+      color: white;
+    }
+
+    body.light #toggle-theme {
+      background: var(--accent-night);
+      color: white;
+    }
+
+    #back-btn {
+      background: #fff;
+      color: #111;
+    }
+
+    body.light #back-btn {
+      background: #111;
+      color: #fff;
+    }
+
+    h2 {
+      margin: 1rem 0;
+      color: var(--accent);
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+      transition: color 0.3s ease;
+    }
+
+    body.light h2 {
+      color: var(--accent-night);
+      text-shadow: none;
+    }
+
+    .full-tree {
+      display: flex;
+      justify-content: center;
+      padding: 1rem;
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    .tree-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 1rem;
+      position: relative;
+    }
+
+    .node {
+      background: linear-gradient(180deg, rgba(124, 92, 255, 0.3), rgba(124, 92, 255, 0.1));
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      min-width: 160px;
+      text-align: center;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+      transition: transform 0.2s, box-shadow 0.2s, background 0.3s, color 0.3s;
+      cursor: pointer;
+    }
+
+    body.light .node {
+      background: linear-gradient(180deg, rgba(124, 92, 255, 0.15), rgba(124, 92, 255, 0.05));
+      color: #111;
+    }
+
+    .node:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+    }
+
+    .node strong {
+      display: block;
+      font-size: 1rem;
+      color: #fff;
+    }
+
+    body.light .node strong {
+      color: #111;
+    }
+
+    .node em {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    body.light .node em {
+      color: var(--muted-night);
+    }
+
+    .children {
+      display: flex;
+      justify-content: center;
+      margin-top: 2rem;
+      position: relative;
+    }
+
+    .children::before {
+      content: '';
+      position: absolute;
+      top: -2rem;
+      left: 50%;
+      width: 2px;
+      height: 2rem;
+      background: var(--accent);
+      z-index: -1;
+    }
+
+    .children::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent);
+      z-index: -1;
+    }
+
+    body.light .children::before,
+    body.light .children::after {
+      background: var(--accent-night);
+    }
+
+    .children .tree-node {
+      margin: 0 1rem;
+    }
+
+    @media (max-width: 800px) {
+      .node { min-width: 120px; padding: 0.6rem 0.8rem; }
+      .children { flex-direction: column; }
+      .children::before,
+      .children::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header-controls">
+    <button id="back-btn">← Back</button>
+    <button id="toggle-theme">Day/Night</button>
+  </div>
+
+  <h2>NG GROUP OF COMPANY - HIERARCHY</h2>
+  <div class="full-tree" id="full-tree-container"></div>
+
+  <script>
+    const state = JSON.parse(localStorage.getItem('orgflow_v1')) || {roles:[], nodes:[]};
+
+    function getRoleName(id){ 
+      const r = state.roles.find(x=>x.id===id); 
+      return r ? r.name : 'Unassigned'; 
+    }
+
+    function createTreeNode(node){
+      const wrapper = document.createElement('div');
+      wrapper.className = 'tree-node';
+
+      const card = document.createElement('div');
+      card.className = 'node';
+      card.innerHTML = `<strong>${node.name || '—'}</strong><em>${getRoleName(node.roleId)}</em>`;
+      wrapper.appendChild(card);
+
+      const children = state.nodes.filter(n=>n.parentId === node.id);
+      if(children.length){
+        const childrenWrap = document.createElement('div');
+        childrenWrap.className = 'children';
+        children.forEach(child => childrenWrap.appendChild(createTreeNode(child)));
+        wrapper.appendChild(childrenWrap);
+      }
+
+      return wrapper;
+    }
+
+    const container = document.getElementById('full-tree-container');
+    const roots = state.nodes.filter(n=>!n.parentId);
+    roots.forEach(root => container.appendChild(createTreeNode(root)));
+
+    // Day/Night toggle
+    const toggleBtn = document.getElementById('toggle-theme');
+    toggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+    });
+
+    // Back button
+    const backBtn = document.getElementById('back-btn');
+    backBtn.addEventListener('click', () => {
+      window.location.href = 'index.html'; // Redirect to main page
+    });
+  </script>
+</body>
+</html>
