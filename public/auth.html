@@ -177,7 +177,7 @@ submitBtn.addEventListener('click', ()=>{
     const acc = accounts.find(acc=>acc.email===email && acc.password===password);
     if(acc){
       localStorage.setItem('loggedInUser', JSON.stringify({name:acc.name,email:acc.email,role}));
-      window.location.href = 'index.html'; // Redirect to homepage after login
+      window.location.href = '../index.html'; // Redirect to homepage after login
     } else warning.textContent = "Invalid email or password!";
   }
 });
@@ -194,7 +194,7 @@ roleSelect.addEventListener('change', ()=>{
 // Prevent logged-in users from accessing login page again
 window.onload = () => {
   if(localStorage.getItem('loggedInUser')){
-    window.location.href = 'index.html';
+    window.location.href = '../index.html';
   }
 };
 </script>

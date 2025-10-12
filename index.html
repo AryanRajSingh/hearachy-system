@@ -9,7 +9,7 @@
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3094/3094837.png" type="image/png" />
 
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="./public/styles.css">
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -86,7 +86,7 @@
   <!-- ================================
        Script
   ================================ -->
-  <script src="script.js"></script>
+  <script src="./public/script.js"></script>
   <script>
     // ================================
     // Role-based Access Control
@@ -95,7 +95,7 @@
 
     if(!loggedInUser){
       // No logged-in user → redirect to login page
-      window.location.href = 'auth.html';
+      window.location.href = './public/auth.html';
     }
 
     const isAdmin = loggedInUser.role === 'admin';
@@ -120,15 +120,15 @@
     authBtn.textContent = 'Logout';
     authBtn.addEventListener('click', ()=>{
       localStorage.removeItem('loggedInUser');
-      window.location.href = 'auth.html';
+      window.location.href = './public/auth.html';
     });
 
     // ================================
     // Navigation Buttons
     // ================================
-    document.getElementById('full-tree').addEventListener('click', ()=>{ window.location.href='tree.html'; });
-    document.getElementById('view-projects').addEventListener('click', ()=>{ window.location.href='projects.html'; });
-    document.getElementById('view-industries').addEventListener('click', ()=>{ window.location.href='industries.html'; });
+    document.getElementById('full-tree').addEventListener('click', ()=>{ window.location.href='./public/tree.html'; });
+    document.getElementById('view-projects').addEventListener('click', ()=>{ window.location.href='./public/projects.html'; });
+    document.getElementById('view-industries').addEventListener('click', ()=>{ window.location.href='./public/industries.html'; });
 
     // ================================
     // Day/Night Toggle

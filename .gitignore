@@ -1,0 +1,85 @@
+# ===============================
+# Node.js
+# ===============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+
+# ===============================
+# Environment files
+# ===============================
+.env
+.env.local
+.env.*.local
+
+# ===============================
+# Logs
+# ===============================
+logs
+*.log
+logs/*.log
+*.pid
+*.seed
+*.pid.lock
+
+# ===============================
+# Build output
+# ===============================
+dist/
+build/
+.cache/
+.next/
+out/
+coverage/
+tmp/
+temp/
+
+# ===============================
+# OS generated files
+# ===============================
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# ===============================
+# IDE / Editor settings
+# ===============================
+.vscode/
+.idea/
+*.iml
+
+# ===============================
+# Frontend specific
+# ===============================
+# React / Vite / Angular / Vue etc.
+*.tsbuildinfo
+*.eslintcache
+
+# ===============================
+# Miscellaneous
+# ===============================
+# Ignore local database or uploads if any
+uploads/
+data/
+*.sqlite
+*.db
+
+# Ignore environment-specific configs
+config/local.js
+
+# ===============================
+# Git backup / merge files
+# ===============================
+*.orig
+*.rej
+
+# ===============================
+# Generated files by testing frameworks
+# ===============================
+coverage/
+reports/
