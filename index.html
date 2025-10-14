@@ -19,14 +19,15 @@
        Header / Top Bar
   ================================ -->
   <header class="topbar">
-    <div class="brand">NG Group OrgFlow</div>
+    <img src="./public/Aryan_industries-removebg-preview.png", style="max-width: 100px;" alt="Industy logo">
+    <div class="brand">NARAYANI-GEETA GROUP</div>
     <div class="controls">
-      <button id="add-root" class="btn">＋ Add Top Role</button>
-      <button id="manage-roles" class="btn">Manage Roles</button>
-      <button id="full-tree" class="btn">View Full Tree</button>
-      <button id="view-projects" class="btn">My Projects</button>
-      <button id="view-industries" class="btn">Industries</button>
-      <button id="auth-btn" class="btn">Logout</button>
+      <button id="add-root" class="btn outline">＋ Add Roles</button>
+      <button id="manage-roles" class="btn outline">Manage Roles</button>
+      <button id="full-tree" class="btn outline">View Full Tree</button>
+      <button id="view-projects" class="btn outline">My Projects</button>
+      <button id="view-industries" class="btn outline">Industries</button>
+      <button id="auth-btn" class="btn outline">Logout</button>
       <button id="theme-toggle" class="btn small">🌙</button>
     </div>
   </header>
@@ -61,7 +62,7 @@
   ================================ -->
   <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
-      <h3 id="modal-title">Add Person</h3>
+      <h3 id="modal-title" style="color: #fff;">Add Person</h3>
 
       <label for="person-name">Person Name</label>
       <input id="person-name" type="text" placeholder="e.g. Ananya Singh" />
@@ -127,7 +128,8 @@
     // Navigation Buttons
     // ================================
     document.getElementById('full-tree').addEventListener('click', ()=>{ window.location.href='./public/tree.html'; });
-    document.getElementById('view-projects').addEventListener('click', ()=>{ window.location.href='./public/projects.html'; });
+    // document.getElementById('view-projects').addEventListener('click', ()=>{ window.location.href='./public/projects.html'; });
+    document.getElementById('view-projects').addEventListener('click', ()=>{ window.location.href='./public/Project/index.html'; });
     document.getElementById('view-industries').addEventListener('click', ()=>{ window.location.href='./public/industries.html'; });
 
     // ================================

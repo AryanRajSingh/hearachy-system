@@ -71,6 +71,8 @@ app.post('/login', (req, res) => {
   });
 });
 
+
+
 // ---------------------- PROTECTED ROUTE EXAMPLE ----------------------
 app.get('/admin-only', (req, res) => {
   const token = req.headers['authorization']?.split(' ')[1];

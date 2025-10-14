@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Projects Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <script>
+        // ======= AUTH CHECK: Redirect to login if not logged in =======
+        const loggedInUser = localStorage.getItem('loggedInUser');
+        if (!loggedInUser) {
+            window.location.href = '../auth.html';
+        }
+    </script>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-footer">
+            <button id="back-home" class="btn outline" style="margin-left:10px;"><i class="ri-arrow-left-line"></i> Home</button>
+            <button id="toggle-theme" class="btn icon-btn" title="Toggle Theme"><i class="ri-moon-line"></i></button>
+        </div>
+        <div class="sidebar-header">
+            <h2>Project Dashboard</h2>
+        </div>
+
+        <!-- Sidebar Stats Wrapper -->
+        <div class="sidebar-stats-wrapper">
+            <div class="sidebar-stats">
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="ri-folder-2-line"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="total-projects">0</span>
+                            <span class="stat-label">Total Projects</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="ri-checkbox-circle-line"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="completed-projects">0</span>
+                            <span class="stat-label">Completed</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="ri-refresh-line"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-number" id="running-projects">0</span>
+                            <span class="stat-label">Running</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id="project-chart" width="200" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+        <!-- HEADER -->
+        <header class="topbar header-controls">
+            <img src="../Aryan_industries-removebg-preview.png" style="max-width: 100px;" alt="Industy logo">
+            <div class="left-controls">
+                <h2 class="page-title">Our Projects</h2>
+            </div>
+            <div class="right-controls">
+                <div class="search-container">
+                    <input type="text" id="search-projects" placeholder="Search projects..." />
+                    <i class="ri-search-line search-icon"></i>
+                </div>
+                <select id="filter-domain">
+                    <option value="">All Domains</option>
+                </select>
+
+                <select id="filter-status">
+                    <option value="">All Status</option>
+                    <option value="running">Open</option>
+                    <option value="completed">Closed</option>
+                </select>
+
+                <button id="add-project" class="btn outline"><i class="ri-add-line"></i> Add Project</button>
+            </div>
+        </header>
+
+        <!-- PROJECTS GRID -->
+        <main class="projects-wrapper">
+            <section class="projects-section">
+                <div class="projects-container" id="projects-container">
+                    <!-- Dynamic projects will appear here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p>© <span id="year"></span> Project Dashboard • NG Group</p>
+        </footer>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-card">
+            <h3 id="modal-title">Add Project</h3>
+
+            <div class="form-group">
+                <label for="project-name">Project Name</label>
+                <input id="project-name" type="text" placeholder="e.g. AI Chatbot" />
+            </div>
+
+            <div class="form-group">
+                <label for="project-domain">Domain</label>
+                <select id="project-domain">
+                    <option value="">Loading...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="project-industry">Industry</label>
+                <select id="project-industry">
+                    <option value="">Select Industry</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="start-date">Start Date</label>
+                    <input type="date" id="start-date" max="" />
+                </div>
+                <div class="form-group">
+                    <label for="end-date">End Date</label>
+                    <input type="date" id="end-date" max="" />
+                </div>
+            </div>
+
+            <div class="warning hidden" id="date-warning">⚠️ Invalid dates!</div>
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="is-running" />
+                <label for="is-running">Running</label>
+            </div>
+
+            <div class="modal-actions">
+                <button id="save-project" class="btn primary"><i class="ri-save-line"></i> Save</button>
+                <button id="cancel" class="btn outline"><i class="ri-close-line"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script>
+        // Auto-update footer year
+        document.getElementById("year").textContent = new Date().getFullYear();
+        // Back to Home Button functionality
+    document.getElementById('back-home').addEventListener('click', () => {
+        window.location.href = '../../index.html'; // Adjust path if your homepage is somewhere else
+    });
+    </script>
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -54,22 +54,32 @@ body {
 }
 
 .brand {
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  font-size: 1.15rem;
+font-family: fantasy;
+    /* font-weight: 700; */
+    letter-spacing: 0.6px;
+    font-size: 1.8rem;
+    text-decoration: underline;
 }
-
+.btn.outline{
+  margin-left:10px;
+  background: transparent;
+    border: 1px solid #736bff;
+    color: #736bff;
+}
 /* ================================
    Buttons
 ================================== */
 .btn {
-  background: var(--accent);
-  border: none;
-  padding: 0.5rem 0.8rem;
-  border-radius: 10px;
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
+  padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 .btn.outline {
@@ -233,7 +243,8 @@ body {
 }
 
 .modal-card {
-  background: linear-gradient(180deg, #071529, #071026);
+  /* background: linear-gradient(180deg, #071529, #071026); */
+  background: var(--accent);;
   padding: 1.1rem;
   border-radius: 12px;
   width: 320px;
@@ -245,10 +256,11 @@ body {
 }
 
 .modal-card label {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-top: 0.6rem;
+    display: block;
+    font-size: 0.85rem;
+    color: #ffff00;
+    font-weight: bolder;
+    margin-top: 0.6rem;
 }
 
 .modal-card input,
@@ -257,8 +269,8 @@ body {
   padding: 0.5rem;
   border-radius: 8px;
   border: none;
-  background: transparent;
-  color: chartreuse;
+  background: #000;
+  color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
