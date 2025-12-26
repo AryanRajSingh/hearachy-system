@@ -1,8 +1,14 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
   <title>OrgFlow — Company Hierarchy Manager</title>
 
   <!-- Favicon -->
@@ -14,12 +20,13 @@
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <!-- ================================
        Header / Top Bar
   ================================ -->
   <header class="topbar">
-    <img src="./public/Aryan_industries-removebg-preview.png", style="max-width: 100px;" alt="Industy logo">
+    <img src="./public/Aryan_industries-removebg-preview.png" , style="max-width: 100px;" alt="Industy logo">
     <div class="brand">NARAYANI-GEETA GROUP</div>
     <div class="controls">
       <button id="add-root" class="btn outline">＋ Add Roles</button>
@@ -94,7 +101,7 @@
     // ================================
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
 
-    if(!loggedInUser){
+    if (!loggedInUser) {
       // No logged-in user → redirect to login page
       window.location.href = './public/auth.html';
     }
@@ -107,7 +114,7 @@
     const roleActionsDiv = document.querySelector('.role-actions');
     const modal = document.getElementById('modal');
 
-    if(!isAdmin){
+    if (!isAdmin) {
       addRootBtn.style.display = 'none';
       manageRolesBtn.style.display = 'none';
       roleActionsDiv.style.display = 'none';
@@ -119,7 +126,7 @@
     // ================================
     const authBtn = document.getElementById('auth-btn');
     authBtn.textContent = 'Logout';
-    authBtn.addEventListener('click', ()=>{
+    authBtn.addEventListener('click', () => {
       localStorage.removeItem('loggedInUser');
       window.location.href = './public/auth.html';
     });
@@ -127,16 +134,16 @@
     // ================================
     // Navigation Buttons
     // ================================
-    document.getElementById('full-tree').addEventListener('click', ()=>{ window.location.href='./public/tree.html'; });
+    document.getElementById('full-tree').addEventListener('click', () => { window.location.href = './public/tree.html'; });
     // document.getElementById('view-projects').addEventListener('click', ()=>{ window.location.href='./public/projects.html'; });
-    document.getElementById('view-projects').addEventListener('click', ()=>{ window.location.href='./public/Project/index.html'; });
-    document.getElementById('view-industries').addEventListener('click', ()=>{ window.location.href='./public/industries.html'; });
+    document.getElementById('view-projects').addEventListener('click', () => { window.location.href = './public/Project/index.html'; });
+    document.getElementById('view-industries').addEventListener('click', () => { window.location.href = './public/industries.html'; });
 
     // ================================
     // Day/Night Toggle
     // ================================
     const themeBtn = document.getElementById('theme-toggle');
-    themeBtn.addEventListener('click', ()=>{
+    themeBtn.addEventListener('click', () => {
       document.body.classList.toggle('light');
       themeBtn.textContent = document.body.classList.contains('light') ? '🌙' : '☀️';
     });
@@ -144,7 +151,7 @@
     // ================================
     // Create Person Cards (conditionally show Edit/Delete only for admin)
     // ================================
-    function createPersonCard(person){
+    function createPersonCard(person) {
       const card = document.createElement('div');
       card.className = 'person-card';
       card.innerHTML = `
@@ -152,7 +159,7 @@
         <p>${person.role}</p>
       `;
 
-      if(isAdmin){
+      if (isAdmin) {
         const editBtn = document.createElement('button');
         editBtn.textContent = 'Edit';
         editBtn.className = 'btn small';
@@ -172,4 +179,5 @@
     // tree.appendChild(createPersonCard({name:'Ananya Singh', role:'Manager'}));
   </script>
 </body>
+
 </html>
