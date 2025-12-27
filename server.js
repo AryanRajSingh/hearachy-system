@@ -1,101 +1,99 @@
-require('dotenv').config();
-const express = require('express');
-// const mysql = require('mysql2');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const path = require('path');
+// ---------------------- ENV & IMPORTS ----------------------
+import dotenv from "dotenv";
+import express from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
+import db from "./db.js"; // ✅ IMPORTANT
+
+dotenv.config();
+
+// ---------------------- FIX __dirname (ES MODULE) ----------------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ---------------------- APP SETUP ----------------------
 const app = express();
-app.use(bodyParser.json());
-app.use(require("cors")());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// ---------------------- MySQL Connection ----------------------
-// ---------------------- MySQL Connection ----------------------
-const db = require('./db');
-const [rows] = await db.query("SELECT * FROM users");
+app.use(cors());
+app.use(express.json()); // replaces body-parser
+app.use(express.static(path.join(__dirname, "public")));
 
-// ---------------------- AUTH ----------------------
+// ---------------------- HEALTH CHECK ----------------------
 app.get("/", (req, res) => {
   res.send("🚀 Hierarchy System API is running successfully!");
 });
 
+// ---------------------- AUTH ----------------------
 
 // SIGNUP
-app.post('/signup', async (req, res) => {
+app.post("/signup", async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
 
     if (!username || !email || !password || !role) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Check if email exists
     const [existingUsers] = await db.query(
-      'SELECT id FROM users WHERE email = ?',
+      "SELECT id FROM users WHERE email = ?",
       [email]
     );
 
     if (existingUsers.length > 0) {
-      return res.status(400).json({ message: 'Email already exists' });
+      return res.status(400).json({ message: "Email already exists" });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user
     await db.query(
-      'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
+      "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
       [username, email, hashedPassword, role]
     );
 
     res.status(201).json({ message: `${role} registered successfully!` });
-
   } catch (err) {
-    console.error('Signup error:', err);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error("Signup error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
-
 // LOGIN
-app.post('/login', async (req, res) => {
+app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email & password required' });
+      return res.status(400).json({ message: "Email & password required" });
     }
 
-    // Get user
     const [users] = await db.query(
-      'SELECT * FROM users WHERE email = ?',
+      "SELECT * FROM users WHERE email = ?",
       [email]
     );
 
     if (users.length === 0) {
-      return res.status(400).json({ message: 'User not found' });
+      return res.status(400).json({ message: "User not found" });
     }
 
     const user = users[0];
 
-    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid password' });
+      return res.status(400).json({ message: "Invalid password" });
     }
 
-    // Generate token
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '2h' }
+      { expiresIn: "2h" }
     );
 
     res.json({
-      message: 'Login successful',
+      message: "Login successful",
       token,
       user: {
         id: user.id,
@@ -103,34 +101,32 @@ app.post('/login', async (req, res) => {
         role: user.role
       }
     });
-
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
-
-
-
-// ---------------------- PROTECTED ROUTE EXAMPLE ----------------------
-app.get('/admin-only', (req, res) => {
-  const token = req.headers['authorization']?.split(' ')[1];
-  if (!token) return res.status(401).json({ message: 'Access denied' });
+// ---------------------- PROTECTED ROUTE ----------------------
+app.get("/admin-only", (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "Access denied" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.role !== 'admin') return res.status(403).json({ message: 'Admins only' });
-    res.json({ message: 'Welcome Admin!' });
-  } catch (err) {
-    res.status(400).json({ message: 'Invalid token' });
+    if (decoded.role !== "admin") {
+      return res.status(403).json({ message: "Admins only" });
+    }
+    res.json({ message: "Welcome Admin!" });
+  } catch {
+    res.status(400).json({ message: "Invalid token" });
   }
 });
 
 // ---------------------- DOMAINS & INDUSTRIES ----------------------
 
-// GET all domains with industries
-app.get('/api/domains', async (req, res) => {
+// GET all domains
+app.get("/api/domains", async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT 
@@ -162,114 +158,76 @@ app.get('/api/domains', async (req, res) => {
       }
     });
 
-    // ✅ Always return ARRAY
     res.json(Object.values(domainsMap));
-
   } catch (err) {
     console.error("❌ Domains API Error:", err);
-    res.status(500).json({ error: 'Failed to fetch domains' });
+    res.status(500).json({ error: "Failed to fetch domains" });
   }
 });
 
-
-// POST add a new domain
-app.post('/api/domains', async (req, res) => {
+// ADD domain
+app.post("/api/domains", async (req, res) => {
   const { name } = req.body;
-  if (!name) return res.status(400).json({ message: 'Domain name required' });
+  if (!name) return res.status(400).json({ message: "Domain name required" });
 
   try {
-    const [result] = await db.query('INSERT INTO domains (name) VALUES (?)', [name]);
+    const [result] = await db.query(
+      "INSERT INTO domains (name) VALUES (?)",
+      [name]
+    );
     res.status(201).json({ id: result.insertId, name, industries: [] });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create domain' });
+    res.status(500).json({ error: "Failed to create domain" });
   }
 });
 
-// POST add a new industry
-app.post('/api/domains/:domainId/industries', async (req, res) => {
-  const domainId = parseInt(req.params.domainId);
+// ADD industry
+app.post("/api/domains/:domainId/industries", async (req, res) => {
+  const domainId = Number(req.params.domainId);
   const { name } = req.body;
-  if (!domainId || !name) return res.status(400).json({ error: 'Invalid domain ID or name' });
+
+  if (!domainId || !name) {
+    return res.status(400).json({ error: "Invalid domain ID or name" });
+  }
 
   try {
-    const [domain] = await db.query('SELECT * FROM domains WHERE id = ?', [domainId]);
-    if (!domain.length) return res.status(404).json({ error: 'Domain not found' });
-
-    const [result] = await db.query('INSERT INTO industries (name, domain_id) VALUES (?, ?)', [name, domainId]);
-    res.status(201).json({ id: result.insertId, name, domain_id: domainId });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to create industry' });
+    await db.query(
+      "INSERT INTO industries (name, domain_id) VALUES (?, ?)",
+      [name, domainId]
+    );
+    res.status(201).json({ name, domain_id: domainId });
+  } catch {
+    res.status(500).json({ error: "Failed to create industry" });
   }
 });
 
-// DELETE domain (and its industries)
-app.delete('/api/domains/:domainId', async (req, res) => {
-  const domainId = parseInt(req.params.domainId);
-  if (!domainId) return res.status(400).json({ error: 'Invalid domain ID' });
+// DELETE domain
+app.delete("/api/domains/:domainId", async (req, res) => {
+  const domainId = Number(req.params.domainId);
 
   try {
-    await db.query('DELETE FROM industries WHERE domain_id = ?', [domainId]);
-    await db.query('DELETE FROM domains WHERE id = ?', [domainId]);
-    res.json({ message: 'Domain deleted' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to delete domain' });
+    await db.query("DELETE FROM industries WHERE domain_id = ?", [domainId]);
+    await db.query("DELETE FROM domains WHERE id = ?", [domainId]);
+    res.json({ message: "Domain deleted" });
+  } catch {
+    res.status(500).json({ error: "Failed to delete domain" });
   }
 });
 
 // DELETE industry
-app.delete('/api/industries/:industryId', async (req, res) => {
-  const industryId = parseInt(req.params.industryId);
-  if (!industryId) return res.status(400).json({ error: 'Invalid industry ID' });
+app.delete("/api/industries/:industryId", async (req, res) => {
+  const industryId = Number(req.params.industryId);
 
   try {
-    await db.query('DELETE FROM industries WHERE id = ?', [industryId]);
-    res.json({ message: 'Industry deleted' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to delete industry' });
-  }
-});
-
-// PATCH edit domain
-app.patch('/api/domains/:domainId', async (req, res) => {
-  const domainId = parseInt(req.params.domainId);
-  const { name } = req.body;
-  if (!domainId || !name) return res.status(400).json({ error: 'Invalid domain ID or name' });
-
-  try {
-    await db.query('UPDATE domains SET name = ? WHERE id = ?', [name, domainId]);
-    res.json({ message: 'Domain updated' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to update domain' });
-  }
-});
-
-// PATCH edit industry
-app.patch('/api/industries/:industryId', async (req, res) => {
-  const industryId = parseInt(req.params.industryId);
-  const { name, domain_id } = req.body;
-  if (!industryId || !name || !domain_id) return res.status(400).json({ error: 'Invalid data' });
-
-  try {
-    const [domain] = await db.query('SELECT * FROM domains WHERE id = ?', [domain_id]);
-    if (!domain.length) return res.status(404).json({ error: 'Parent domain not found' });
-
-    await db.query('UPDATE industries SET name=?, domain_id=? WHERE id=?', [name, domain_id, industryId]);
-    res.json({ message: 'Industry updated' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to update industry' });
+    await db.query("DELETE FROM industries WHERE id = ?", [industryId]);
+    res.json({ message: "Industry deleted" });
+  } catch {
+    res.status(500).json({ error: "Failed to delete industry" });
   }
 });
 
 // ---------------------- START SERVER ----------------------
 const PORT = process.env.PORT || 10000;
-
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
