@@ -122,14 +122,24 @@
     }
 
     // ================================
-    // Logout
-    // ================================
-    const authBtn = document.getElementById('auth-btn');
-    authBtn.textContent = 'Logout';
-    authBtn.addEventListener('click', () => {
-      localStorage.removeItem('loggedInUser');
-      window.location.href = './auth.html';
-    });
+// ================================
+// Logout (JWT-based)
+// ================================
+const authBtn = document.getElementById('auth-btn');
+
+if (authBtn) {
+  authBtn.textContent = 'Logout';
+
+  authBtn.addEventListener("click", () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  localStorage.removeItem("loggedInUser");
+
+  window.location.href = "./auth.html";
+});
+
+}
+
 
     // ================================
     // Navigation Buttons

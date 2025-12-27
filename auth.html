@@ -3,203 +3,194 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <title>Auth Page</title>
-<link rel="stylesheet" href="styles.css">
+
 <style>
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: Inter, sans-serif;
   background:#0b0f2a;
   color:#ccc;
   display:flex;
-  flex-direction:column;
-  align-items:center;
   justify-content:center;
+  align-items:center;
   height:100vh;
   margin:0;
 }
 .container{
-  background: rgba(10,15,40,0.9);
+  background:rgba(10,15,40,0.95);
   padding:2rem;
   border-radius:12px;
-  width:320px;
-  display:flex;
-  flex-direction:column;
-  gap:1rem;
+  width:340px;
 }
-input, select{
-  padding:0.5rem;
+input, select, button{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
   border-radius:8px;
   border:none;
-  width:100%;
 }
 button{
-  padding:0.6rem;
-  border:none;
-  border-radius:8px;
   background:#736bff;
   color:white;
   cursor:pointer;
 }
 button:hover{opacity:0.9;}
 .hidden{display:none;}
-.warning{color:red;font-size:0.85rem;}
+.warning{color:#ff6b6b;font-size:0.85rem;margin-top:10px;}
 .toggle-pass{position:relative;}
 .toggle-pass span{
   position:absolute;
-  right:10px;
+  right:12px;
   top:50%;
   transform:translateY(-50%);
   cursor:pointer;
-  color:#aaa;
 }
 </style>
 </head>
-<body>
-<div class="container">
-  <h2 id="form-title">User Login</h2>
 
-  <label for="role-select">Select Role:</label>
-  <select id="role-select">
+<body>
+
+<div class="container">
+  <h2 id="title">Login</h2>
+
+  <select id="role">
     <option value="user">User</option>
     <option value="admin">Admin</option>
   </select>
 
-  <div id="signup-fields" class="hidden">
-    <input type="text" id="name" placeholder="Name" />
-    <div class="toggle-pass">
-      <input type="password" id="password1" placeholder="Password" />
-      <span id="toggle-password1">👁️</span>
-    </div>
-    <div class="toggle-pass">
-      <input type="password" id="password2" placeholder="Confirm Password" />
-      <span id="toggle-password2">👁️</span>
-    </div>
+  <input id="username" class="hidden" placeholder="Username">
+
+  <input id="email" type="email" placeholder="Email">
+
+  <div class="toggle-pass">
+    <input id="password" type="password" placeholder="Password">
+    <span onclick="togglePass()">👁️</span>
   </div>
 
-  <div id="login-fields">
-    <div class="toggle-pass">
-      <input type="password" id="login-password" placeholder="Password" />
-      <span id="toggle-login-password">👁️</span>
-    </div>
-  </div>
+  <input id="confirm" class="hidden" type="password" placeholder="Confirm Password">
 
-  <input type="email" id="email" placeholder="Email" />
+  <button id="submit">Login</button>
 
-  <button id="submit-btn">Login</button>
   <div class="warning" id="warning"></div>
 
-  <p id="toggle-text">Don't have an account? <a href="#" id="toggle-link">Sign Up</a></p>
+  <p id="toggleText">
+    Don't have an account?
+    <a href="#" onclick="toggleForm()">Sign up</a>
+  </p>
 </div>
 
 <script>
+const API_BASE = "https://hearachy-system.onrender.com";
+
 let isSignup = false;
 
-// Elements
-const formTitle = document.getElementById('form-title');
-const toggleLink = document.getElementById('toggle-link');
-const toggleText = document.getElementById('toggle-text');
-const submitBtn = document.getElementById('submit-btn');
-const signupFields = document.getElementById('signup-fields');
-const loginFields = document.getElementById('login-fields');
-const roleSelect = document.getElementById('role-select');
-const warning = document.getElementById('warning');
+const title = document.getElementById("title");
+const username = document.getElementById("username");
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+const confirm = document.getElementById("confirm");
+const role = document.getElementById("role");
+const submit = document.getElementById("submit");
+const warning = document.getElementById("warning");
+const toggleText = document.getElementById("toggleText");
 
-const nameInput = document.getElementById('name');
-const password1 = document.getElementById('password1');
-const password2 = document.getElementById('password2');
-const loginPassword = document.getElementById('login-password');
-const emailInput = document.getElementById('email');
-
-// Password toggle function
-function togglePassword(inputId, spanId){
-  const input = document.getElementById(inputId);
-  const span = document.getElementById(spanId);
-  span.addEventListener('click', ()=>{
-    input.type = input.type==='password'?'text':'password';
-  });
-}
-togglePassword('password1','toggle-password1');
-togglePassword('password2','toggle-password2');
-togglePassword('login-password','toggle-login-password');
-
-// Toggle between login and signup
 function toggleForm(){
   isSignup = !isSignup;
-  warning.textContent='';
+  warning.textContent = "";
+
   if(isSignup){
-    formTitle.textContent = roleSelect.value === 'admin' ? 'Admin Signup' : 'User Signup';
-    submitBtn.textContent = 'Sign Up';
-    toggleText.innerHTML = 'Already have an account? <a href="#" id="toggle-link">Login</a>';
-    signupFields.classList.remove('hidden');
-    loginFields.classList.add('hidden');
+    title.textContent = "Sign Up";
+    submit.textContent = "Sign Up";
+    username.classList.remove("hidden");
+    confirm.classList.remove("hidden");
+    toggleText.innerHTML = `Already have an account? <a href="#" onclick="toggleForm()">Login</a>`;
   } else {
-    formTitle.textContent = roleSelect.value === 'admin' ? 'Admin Login' : 'User Login';
-    submitBtn.textContent = 'Login';
-    toggleText.innerHTML = 'Don\'t have an account? <a href="#" id="toggle-link">Sign Up</a>';
-    signupFields.classList.add('hidden');
-    loginFields.classList.remove('hidden');
+    title.textContent = "Login";
+    submit.textContent = "Login";
+    username.classList.add("hidden");
+    confirm.classList.add("hidden");
+    toggleText.innerHTML = `Don't have an account? <a href="#" onclick="toggleForm()">Sign up</a>`;
   }
-  document.getElementById('toggle-link').addEventListener('click', toggleForm);
 }
-toggleLink.addEventListener('click', toggleForm);
 
-// Handle submit
-submitBtn.addEventListener('click', ()=>{
-  const role = roleSelect.value;
-  const email = emailInput.value.trim();
-  const name = nameInput.value.trim();
-  const password = isSignup ? password1.value : loginPassword.value;
-  const confirmPass = password2.value;
+function togglePass(){
+  password.type = password.type === "password" ? "text" : "password";
+}
 
-  if(!email || !password || (isSignup && !name)){
-    warning.textContent = "Please fill all required fields!";
-    return;
-  }
+submit.onclick = async () => {
+  warning.textContent = "";
 
-  if(isSignup && password !== confirmPass){
-    warning.textContent = "Passwords do not match!";
-    return;
-  }
-
-  const storageKey = role==='admin' ? 'admins' : 'users';
-  let accounts = JSON.parse(localStorage.getItem(storageKey) || '[]');
+  const payload = {
+    email: email.value.trim(),
+    password: password.value.trim(),
+    role: role.value
+  };
 
   if(isSignup){
-    if(accounts.find(acc=>acc.email===email)){
-      warning.textContent = "Email already exists!";
+    if(!username.value || !confirm.value){
+      warning.textContent = "All fields required";
       return;
     }
-    accounts.push({name,email,password});
-    localStorage.setItem(storageKey, JSON.stringify(accounts));
-    alert(`${role.charAt(0).toUpperCase()+role.slice(1)} registered successfully! Please login.`);
+    if(password.value !== confirm.value){
+      warning.textContent = "Passwords do not match";
+      return;
+    }
+
+    payload.username = username.value.trim();
+
+    const res = await fetch(`${API_BASE}/signup`,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      warning.textContent = data.message;
+      return;
+    }
+
+    alert("Signup successful! Please login.");
     toggleForm();
-  } else {
-    const acc = accounts.find(acc=>acc.email===email && acc.password===password);
-    if(acc){
-      localStorage.setItem('loggedInUser', JSON.stringify({name:acc.name,email:acc.email,role}));
-      window.location.href = './index.html'; // Redirect to homepage after login
-    } else warning.textContent = "Invalid email or password!";
+    return;
   }
-});
 
-// Update form title on role change
-roleSelect.addEventListener('change', ()=>{
-  if(isSignup){
-    formTitle.textContent = roleSelect.value === 'admin' ? 'Admin Signup' : 'User Signup';
-  } else {
-    formTitle.textContent = roleSelect.value === 'admin' ? 'Admin Login' : 'User Login';
-  }
-});
+ // ======================= LOGIN =======================
+try {
+  const res = await fetch(`${API_BASE}/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
-// Prevent logged-in users from accessing login page again
-window.onload = () => {
-  if(localStorage.getItem('loggedInUser')){
-    window.location.href = './index.html';
+  const data = await res.json();
+
+  if (!res.ok) {
+    warning.textContent = data.message || "Login failed";
+    return;
   }
+
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("user", JSON.stringify(data.user));
+
+  window.location.href = "dashboard.html";
+
+} catch (error) {
+  console.error("Login error:", error);
+  warning.textContent = "Server error. Try again later.";
+}
+
+
+  // ✅ correct GitHub Pages redirect
+  window.location.href = "./index.html";
 };
+
+// Prevent logged-in users
+if(localStorage.getItem("token")){
+  window.location.href = "./index.html";
+}
 </script>
+
 </body>
 </html>

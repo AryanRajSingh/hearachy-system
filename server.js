@@ -9,7 +9,8 @@ import { fileURLToPath } from "url";
 
 import db from "./db.js"; // ✅ IMPORTANT
 
-dotenv.config();
+// require("dotenv").config();
+
 
 // ---------------------- FIX __dirname (ES MODULE) ----------------------
 const __filename = fileURLToPath(import.meta.url);
@@ -75,23 +76,25 @@ app.post("/signup", async (req, res) => {
 
 
 // LOGIN
+// ======================= LOGIN =======================
 app.post("/login", async (req, res) => {
   try {
-    let { email, password } = req.body;
+    console.log("REQ BODY:", req.body);
 
-    // 🔒 sanitize inputs
-    email = email?.trim().toLowerCase();
-    password = password?.trim();
+    const { email, password } = req.body || {};
 
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    // get user
+    console.log("EMAIL:", email);
+
     const [users] = await db.query(
       "SELECT id, username, email, password, role FROM users WHERE email = ?",
-      [email]
+      [email.toLowerCase()]
     );
+
+    console.log("USERS:", users);
 
     if (users.length === 0) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -99,20 +102,24 @@ app.post("/login", async (req, res) => {
 
     const user = users[0];
 
-    // compare password
+    console.log("HASHED PASSWORD:", user.password);
+
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log("PASSWORD MATCH:", isMatch);
+
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // generate token
+    console.log("JWT SECRET:", process.env.JWT_SECRET);
+
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Login successful",
       token,
       user: {
@@ -123,10 +130,14 @@ app.post("/login", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ Login error:", err);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("🔥 LOGIN ERROR FULL:", err);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: err.message
+    });
   }
 });
+
 
 
 // ---------------------- PROTECTED ROUTE ----------------------
