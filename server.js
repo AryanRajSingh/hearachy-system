@@ -9,7 +9,7 @@ const path = require('path');
 
 const app = express();
 app.use(bodyParser.json());
-app.use(cors());
+app.use(require("cors")());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ---------------------- MySQL Connection ----------------------
@@ -132,24 +132,44 @@ app.get('/admin-only', (req, res) => {
 app.get('/api/domains', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT d.id AS domain_id, d.name AS domain_name, i.id AS industry_id, i.name AS industry_name
+      SELECT 
+        d.id AS domain_id,
+        d.name AS domain_name,
+        i.id AS industry_id,
+        i.name AS industry_name
       FROM domains d
       LEFT JOIN industries i ON i.domain_id = d.id
       ORDER BY d.name, i.name
     `);
 
     const domainsMap = {};
+
     rows.forEach(row => {
-      if (!domainsMap[row.domain_id]) domainsMap[row.domain_id] = { id: row.domain_id, name: row.domain_name, industries: [] };
-      if (row.industry_id) domainsMap[row.domain_id].industries.push({ id: row.industry_id, name: row.industry_name });
+      if (!domainsMap[row.domain_id]) {
+        domainsMap[row.domain_id] = {
+          id: row.domain_id,
+          name: row.domain_name,
+          industries: []
+        };
+      }
+
+      if (row.industry_id) {
+        domainsMap[row.domain_id].industries.push({
+          id: row.industry_id,
+          name: row.industry_name
+        });
+      }
     });
 
+    // ✅ Always return ARRAY
     res.json(Object.values(domainsMap));
+
   } catch (err) {
-    console.error(err);
+    console.error("❌ Domains API Error:", err);
     res.status(500).json({ error: 'Failed to fetch domains' });
   }
 });
+
 
 // POST add a new domain
 app.post('/api/domains', async (req, res) => {

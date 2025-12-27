@@ -41,7 +41,7 @@ endDate.setAttribute("max", today);
 // ================================
 async function loadDomains() {
   try {
-    const res = await fetch("http://localhost:5000/api/domains");
+    const res = await fetch("https://hearachy-system.onrender.com/api/domains");
     const data = await res.json();
 
     if (!Array.isArray(data)) throw new Error("Invalid domains data");

@@ -200,7 +200,7 @@ let editTarget = null;
 // Load domains and industries
 async function loadDomains(){
   try{
-    const res = await fetch('http://localhost:5000/api/domains', {
+    const res = await fetch('https://hearachy-system.onrender.com/api/domains', {
       headers: {'Authorization':'Bearer '+loggedInUser.token}
     });
     const data = await res.json();
@@ -317,13 +317,13 @@ document.getElementById('save-btn').addEventListener('click', async ()=>{
   try{
     if(modalMode==='domain'){
       if(editTarget.domain){
-        await fetch(`http://localhost:5000/api/domains/${editTarget.domain.id}`,{
+        await fetch(`https://hearachy-system.onrender.com/api/domains/${editTarget.domain.id}`,{
           method:'PATCH',
           headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+loggedInUser.token },
           body: JSON.stringify({ name: val })
         });
       }else{
-        await fetch('http://localhost:5000/api/domains',{
+        await fetch('https://hearachy-system.onrender.com/api/domains',{
           method:'POST',
           headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+loggedInUser.token },
           body: JSON.stringify({ name: val })
@@ -334,13 +334,13 @@ document.getElementById('save-btn').addEventListener('click', async ()=>{
       if(!parentDomainId) return alert('Please select a valid domain!');
 
       if(editTarget.industry){
-        await fetch(`http://localhost:5000/api/industries/${editTarget.industry.id}`,{
+        await fetch(`https://hearachy-system.onrender.com/api/industries/${editTarget.industry.id}`,{
           method:'PATCH',
           headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+loggedInUser.token },
           body: JSON.stringify({ name: val, domain_id: parentDomainId })
         });
       }else{
-        await fetch(`http://localhost:5000/api/domains/${parentDomainId}/industries`,{
+        await fetch(`https://hearachy-system.onrender.com/api/domains/${parentDomainId}/industries`,{
           method:'POST',
           headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+loggedInUser.token },
           body: JSON.stringify({ name: val })
@@ -354,7 +354,7 @@ document.getElementById('save-btn').addEventListener('click', async ()=>{
 
 async function deleteDomain(domain){
   try{
-    await fetch(`http://localhost:5000/api/domains/${domain.id}`,{
+    await fetch(`https://hearachy-system.onrender.com/api/domains/${domain.id}`,{
       method:'DELETE',
       headers:{ 'Authorization':'Bearer '+loggedInUser.token }
     });
@@ -364,7 +364,7 @@ async function deleteDomain(domain){
 
 async function deleteIndustry(domain, industry){
   try{
-    await fetch(`http://localhost:5000/api/industries/${industry.id}`,{
+    await fetch(`https://hearachy-system.onrender.com/api/industries/${industry.id}`,{
       method:'DELETE',
       headers:{ 'Authorization':'Bearer '+loggedInUser.token }
     });
