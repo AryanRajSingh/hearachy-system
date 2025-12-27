@@ -103,7 +103,7 @@
 
     if (!loggedInUser) {
       // No logged-in user → redirect to login page
-      window.location.href = './public/auth.html';
+      window.location.href = './auth.html';
     }
 
     const isAdmin = loggedInUser.role === 'admin';
@@ -128,7 +128,7 @@
     authBtn.textContent = 'Logout';
     authBtn.addEventListener('click', () => {
       localStorage.removeItem('loggedInUser');
-      window.location.href = './public/auth.html';
+      window.location.href = './auth.html';
     });
 
     // ================================
