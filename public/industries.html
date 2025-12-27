@@ -185,7 +185,8 @@
 
 <script>
 const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-if(!loggedInUser) window.location.href='auth.html';
+if (!loggedInUser) window.location.href = 'auth.html';
+
 const isAdmin = loggedInUser.role === 'admin';
 let domainsData = [];
 
@@ -194,192 +195,208 @@ const modal = document.getElementById('modal');
 const nameInput = document.getElementById('name-input');
 const parentSelect = document.getElementById('parent-select');
 const parentLabel = document.getElementById('parent-label');
+
 let modalMode = null;
 let editTarget = null;
 
-// Load domains and industries
-async function loadDomains(){
-  try{
-    const res = await fetch('https://hearachy-system.onrender.com/api/domains', {
-      headers: {'Authorization':'Bearer '+loggedInUser.token}
-    });
+// ---------------- LOAD DOMAINS ----------------
+async function loadDomains() {
+  try {
+    const headers = {};
+    if (loggedInUser?.token) {
+      headers.Authorization = 'Bearer ' + loggedInUser.token;
+    }
+
+    const res = await fetch(
+      'https://hearachy-system.onrender.com/api/domains',
+      { headers }
+    );
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("API Error:", text);
+      throw new Error("Failed API");
+    }
+
     const data = await res.json();
-    if(!Array.isArray(data)) throw new Error('Invalid data');
-    domainsData = data.map(d=>({
-      id:d.id,
-      name:d.name,
-      industriesData:d.industries || []
+
+    if (!Array.isArray(data)) {
+      console.error("Invalid response:", data);
+      throw new Error("Invalid data");
+    }
+
+    // ✅ FIXED MAPPING
+    domainsData = data.map(d => ({
+      id: d.id,
+      name: d.name,
+      industriesData: Array.isArray(d.industries) ? d.industries : []
     }));
+
     render();
-  }catch(err){ console.error(err); alert('Failed to load domains'); }
+
+  } catch (err) {
+    console.error(err);
+    alert('Failed to load domains');
+  }
 }
 
-function render(){
-  domainsContainer.innerHTML='';
-  domainsData.forEach(domain=>{
-    const domainDiv=document.createElement('div');
-    domainDiv.className='domain-group';
+// ---------------- RENDER ----------------
+function render() {
+  domainsContainer.innerHTML = '';
 
-    const headerDiv=document.createElement('div'); headerDiv.className='domain-header';
-    const title=document.createElement('div'); title.className='domain-title'; title.textContent=domain.name;
+  domainsData.forEach(domain => {
+    const domainDiv = document.createElement('div');
+    domainDiv.className = 'domain-group';
+
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'domain-header';
+
+    const title = document.createElement('div');
+    title.className = 'domain-title';
+    title.textContent = domain.name;
+
     headerDiv.appendChild(title);
 
-    if(isAdmin){
-      const actionsDiv=document.createElement('div'); actionsDiv.className='domain-actions';
+    if (isAdmin) {
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'domain-actions';
 
-      const addIndBtn=document.createElement('button'); addIndBtn.textContent='＋ Industry';
-      addIndBtn.onclick=()=>openModal('industry', domain);
+      const addBtn = document.createElement('button');
+      addBtn.textContent = '＋ Industry';
+      addBtn.onclick = () => openModal('industry', domain);
 
-      const editBtn=document.createElement('button'); editBtn.textContent='✎';
-      editBtn.onclick=()=>openModal('edit', domain);
+      const editBtn = document.createElement('button');
+      editBtn.textContent = '✎';
+      editBtn.onclick = () => openModal('edit', domain);
 
-      const delBtn=document.createElement('button'); delBtn.textContent='🗑';
-      delBtn.onclick=()=>{ if(confirm('Delete this domain?')) deleteDomain(domain); }
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '🗑';
+      delBtn.onclick = () => confirm('Delete domain?') && deleteDomain(domain);
 
-      actionsDiv.appendChild(addIndBtn); actionsDiv.appendChild(editBtn); actionsDiv.appendChild(delBtn);
+      actionsDiv.append(addBtn, editBtn, delBtn);
       headerDiv.appendChild(actionsDiv);
     }
 
     domainDiv.appendChild(headerDiv);
 
-    const industryGrid=document.createElement('div'); industryGrid.className='industry-grid';
-    domain.industriesData.forEach(ind=>{
-      const card=document.createElement('div'); card.className='industry-card';
-      card.innerHTML=`<span>${ind.name}</span>`;
-      if(isAdmin){
-        const editI=document.createElement('button'); editI.textContent='✎';
-        editI.onclick=()=>openModal('edit', domain, ind);
-        const delI=document.createElement('button'); delI.textContent='🗑';
-        delI.onclick=()=>{ if(confirm('Delete this industry?')) deleteIndustry(domain, ind); }
-        card.appendChild(editI); card.appendChild(delI);
+    const grid = document.createElement('div');
+    grid.className = 'industry-grid';
+
+    domain.industriesData.forEach(ind => {
+      const card = document.createElement('div');
+      card.className = 'industry-card';
+
+      const span = document.createElement('span');
+      span.textContent = ind.name;
+      card.appendChild(span);
+
+      if (isAdmin) {
+        const e = document.createElement('button');
+        e.textContent = '✎';
+        e.onclick = () => openModal('edit', domain, ind);
+
+        const d = document.createElement('button');
+        d.textContent = '🗑';
+        d.onclick = () => confirm('Delete industry?') && deleteIndustry(ind);
+
+        card.append(e, d);
       }
-      industryGrid.appendChild(card);
+
+      grid.appendChild(card);
     });
-    domainDiv.appendChild(industryGrid);
+
+    domainDiv.appendChild(grid);
     domainsContainer.appendChild(domainDiv);
   });
-  document.getElementById('add-domain').style.display=isAdmin?'inline-block':'none';
+
+  document.getElementById('add-domain').style.display = isAdmin ? 'inline-block' : 'none';
 }
 
-// Open Modal
-function openModal(mode, domain=null, industry=null){
-  if(!isAdmin) return;
+// ---------------- MODAL ----------------
+function openModal(mode, domain = null, industry = null) {
   modal.classList.remove('hidden');
-  nameInput.value='';
-  parentSelect.innerHTML='';
-  modalMode=mode;
-  editTarget={domain, industry};
+  nameInput.value = '';
+  parentSelect.innerHTML = '';
+  modalMode = mode;
+  editTarget = { domain, industry };
 
-  if(mode==='domain'){
-    document.getElementById('modal-title').textContent='Add Domain';
-    parentLabel.style.display='none';
-  }else if(mode==='industry'){
-    document.getElementById('modal-title').textContent='Add Industry';
-    parentLabel.style.display='block';
-    const placeholder=document.createElement('option');
-    placeholder.value=''; placeholder.textContent='-- Select Domain --';
-    parentSelect.appendChild(placeholder);
-    domainsData.forEach(d=>{
-      const opt=document.createElement('option');
-      opt.value=d.id; opt.textContent=d.name;
-      if(domain && d.id===domain.id) opt.selected=true;
+  if (mode === 'domain') {
+    parentLabel.style.display = 'none';
+  } else {
+    parentLabel.style.display = 'block';
+    domainsData.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = d.name;
+      if (domain && d.id === domain.id) opt.selected = true;
       parentSelect.appendChild(opt);
     });
-  }else if(mode==='edit'){
-    document.getElementById('modal-title').textContent='Edit';
-    if(industry){
-      nameInput.value=industry.name;
-      parentLabel.style.display='block';
-      const placeholder=document.createElement('option');
-      placeholder.value=''; placeholder.textContent='-- Select Domain --';
-      parentSelect.appendChild(placeholder);
-      domainsData.forEach(d=>{
-        const opt=document.createElement('option');
-        opt.value=d.id; opt.textContent=d.name;
-        if(d.id===domain.id) opt.selected=true;
-        parentSelect.appendChild(opt);
-      });
-    }else{
-      nameInput.value=domain.name;
-      parentLabel.style.display='none';
-    }
   }
-  nameInput.focus();
+
+  if (industry) nameInput.value = industry.name;
+  if (domain && !industry && mode === 'edit') nameInput.value = domain.name;
 }
 
-function closeModal(){ modal.classList.add('hidden'); modalMode=null; editTarget=null; }
-document.getElementById('cancel-btn').addEventListener('click', closeModal);
+document.getElementById('cancel-btn').onclick = () => modal.classList.add('hidden');
 
-document.getElementById('save-btn').addEventListener('click', async ()=>{
-  const val=nameInput.value.trim();
-  if(!val) return alert('Enter a name!');
+// ---------------- SAVE ----------------
+document.getElementById('save-btn').onclick = async () => {
+  const name = nameInput.value.trim();
+  if (!name) return alert('Enter name');
 
-  try{
-    if(modalMode==='domain'){
-      if(editTarget.domain){
-        await fetch(`https://hearachy-system.onrender.com/api/domains/${editTarget.domain.id}`,{
-          method:'PATCH',
-          headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+loggedInUser.token },
-          body: JSON.stringify({ name: val })
-        });
-      }else{
-        await fetch('https://hearachy-system.onrender.com/api/domains',{
-          method:'POST',
-          headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+loggedInUser.token },
-          body: JSON.stringify({ name: val })
-        });
-      }
-    }else if(modalMode==='industry'){
-      const parentDomainId=parseInt(parentSelect.value);
-      if(!parentDomainId) return alert('Please select a valid domain!');
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer ' + loggedInUser.token
+  };
 
-      if(editTarget.industry){
-        await fetch(`https://hearachy-system.onrender.com/api/industries/${editTarget.industry.id}`,{
-          method:'PATCH',
-          headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+loggedInUser.token },
-          body: JSON.stringify({ name: val, domain_id: parentDomainId })
-        });
-      }else{
-        await fetch(`https://hearachy-system.onrender.com/api/domains/${parentDomainId}/industries`,{
-          method:'POST',
-          headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+loggedInUser.token },
-          body: JSON.stringify({ name: val })
-        });
-      }
+  try {
+    if (modalMode === 'domain') {
+      await fetch('https://hearachy-system.onrender.com/api/domains', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ name })
+      });
+    } else {
+      const domainId = parentSelect.value;
+      await fetch(
+        `https://hearachy-system.onrender.com/api/domains/${domainId}/industries`,
+        { method: 'POST', headers, body: JSON.stringify({ name }) }
+      );
     }
-    await loadDomains();
-    closeModal();
-  }catch(err){ console.error(err); alert('Failed to save.'); }
-});
 
-async function deleteDomain(domain){
-  try{
-    await fetch(`https://hearachy-system.onrender.com/api/domains/${domain.id}`,{
-      method:'DELETE',
-      headers:{ 'Authorization':'Bearer '+loggedInUser.token }
-    });
-    await loadDomains();
-  }catch(err){ console.error(err); alert('Failed to delete domain'); }
+    modal.classList.add('hidden');
+    loadDomains();
+  } catch (e) {
+    alert('Save failed');
+  }
+};
+
+// ---------------- DELETE ----------------
+async function deleteDomain(domain) {
+  await fetch(
+    `https://hearachy-system.onrender.com/api/domains/${domain.id}`,
+    { method: 'DELETE', headers: { Authorization: 'Bearer ' + loggedInUser.token } }
+  );
+  loadDomains();
 }
 
-async function deleteIndustry(domain, industry){
-  try{
-    await fetch(`https://hearachy-system.onrender.com/api/industries/${industry.id}`,{
-      method:'DELETE',
-      headers:{ 'Authorization':'Bearer '+loggedInUser.token }
-    });
-    await loadDomains();
-  }catch(err){ console.error(err); alert('Failed to delete industry'); }
+async function deleteIndustry(ind) {
+  await fetch(
+    `https://hearachy-system.onrender.com/api/industries/${ind.id}`,
+    { method: 'DELETE', headers: { Authorization: 'Bearer ' + loggedInUser.token } }
+  );
+  loadDomains();
 }
 
-document.getElementById('add-domain').addEventListener('click', ()=>openModal('domain'));
-
-document.getElementById('theme-toggle').addEventListener('click', ()=>{
+// ---------------- THEME ----------------
+document.getElementById('theme-toggle').onclick = () => {
   document.body.classList.toggle('light');
-  document.getElementById('theme-toggle').textContent=document.body.classList.contains('light')?'☀️':'🌙';
-});
+};
+
+document.getElementById('add-domain').onclick = () => openModal('domain');
 
 loadDomains();
 </script>
+
 </body>
 </html>
