@@ -17,6 +17,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 const db = require('./db');
 
 // ---------------------- AUTH ----------------------
+app.get("/", (req, res) => {
+  res.send("🚀 Hierarchy System API is running successfully!");
+});
+
 
 // SIGNUP
 app.post('/signup', async (req, res) => {
@@ -242,5 +246,9 @@ app.patch('/api/industries/:industryId', async (req, res) => {
 });
 
 // ---------------------- START SERVER ----------------------
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
