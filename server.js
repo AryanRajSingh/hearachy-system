@@ -15,6 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ---------------------- MySQL Connection ----------------------
 // ---------------------- MySQL Connection ----------------------
 const db = require('./db');
+const [rows] = await db.query("SELECT * FROM users");
 
 // ---------------------- AUTH ----------------------
 app.get("/", (req, res) => {
