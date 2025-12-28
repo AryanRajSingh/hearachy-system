@@ -297,6 +297,20 @@ app.delete("/api/industries/:industryId", verifyToken, async (req, res) => {
   }
 });
 
+// test
+app.get("/db-test", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT 1");
+    res.json({ success: true });
+  } catch (error) {
+    console.error("❌ DB TEST ERROR:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // ======================= START SERVER =======================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
