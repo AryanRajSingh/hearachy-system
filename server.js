@@ -8,7 +8,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import db from "./db.js";
 
-// dotenv.config();
+dotenv.config();
 
 // ======================= FIX __dirname =======================
 const __filename = fileURLToPath(import.meta.url);
