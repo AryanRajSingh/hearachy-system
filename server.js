@@ -159,14 +159,6 @@ app.get("/admin-only", verifyToken, (req, res) => {
 // ============================================================
 // ================= DOMAINS & INDUSTRIES =====================
 // ============================================================
-app.get("/db-test", async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT 1");
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // GET domains (PUBLIC)
 app.get("/api/domains", async (req, res) => {
