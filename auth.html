@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auth Page</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Auth</title>
 
 <style>
 body {
@@ -58,16 +58,16 @@ button:hover{opacity:0.9;}
     <option value="admin">Admin</option>
   </select>
 
-  <input id="username" class="hidden" placeholder="Username">
+  <input id="username" class="hidden" placeholder="Username" />
 
-  <input id="email" type="email" placeholder="Email">
+  <input id="email" type="email" placeholder="Email" />
 
   <div class="toggle-pass">
-    <input id="password" type="password" placeholder="Password">
+    <input id="password" type="password" placeholder="Password" />
     <span onclick="togglePass()">👁️</span>
   </div>
 
-  <input id="confirm" class="hidden" type="password" placeholder="Confirm Password">
+  <input id="confirm" class="hidden" type="password" placeholder="Confirm Password" />
 
   <button id="submit">Login</button>
 
@@ -80,10 +80,13 @@ button:hover{opacity:0.9;}
 </div>
 
 <script>
+/* ================= CONFIG ================= */
 const API_BASE = "https://hearachy-system.onrender.com";
 
+/* ================= STATE ================= */
 let isSignup = false;
 
+/* ================= ELEMENTS ================= */
 const title = document.getElementById("title");
 const username = document.getElementById("username");
 const email = document.getElementById("email");
@@ -94,6 +97,7 @@ const submit = document.getElementById("submit");
 const warning = document.getElementById("warning");
 const toggleText = document.getElementById("toggleText");
 
+/* ================= UI ================= */
 function toggleForm(){
   isSignup = !isSignup;
   warning.textContent = "";
@@ -103,13 +107,15 @@ function toggleForm(){
     submit.textContent = "Sign Up";
     username.classList.remove("hidden");
     confirm.classList.remove("hidden");
-    toggleText.innerHTML = `Already have an account? <a href="#" onclick="toggleForm()">Login</a>`;
+    toggleText.innerHTML =
+      `Already have an account? <a href="#" onclick="toggleForm()">Login</a>`;
   } else {
     title.textContent = "Login";
     submit.textContent = "Login";
     username.classList.add("hidden");
     confirm.classList.add("hidden");
-    toggleText.innerHTML = `Don't have an account? <a href="#" onclick="toggleForm()">Sign up</a>`;
+    toggleText.innerHTML =
+      `Don't have an account? <a href="#" onclick="toggleForm()">Sign up</a>`;
   }
 }
 
@@ -117,76 +123,82 @@ function togglePass(){
   password.type = password.type === "password" ? "text" : "password";
 }
 
+/* ================= SUBMIT ================= */
 submit.onclick = async () => {
   warning.textContent = "";
 
-  const payload = {
-    email: email.value.trim(),
-    password: password.value.trim(),
-    role: role.value
-  };
+  const emailVal = email.value.trim();
+  const passVal = password.value.trim();
 
-  if(isSignup){
-    if(!username.value || !confirm.value){
-      warning.textContent = "All fields required";
+  if(!emailVal || !passVal){
+    warning.textContent = "Email and password required";
+    return;
+  }
+
+  try {
+    if(isSignup){
+      if(!username.value.trim() || !confirm.value.trim()){
+        warning.textContent = "All fields required";
+        return;
+      }
+
+      if(passVal !== confirm.value.trim()){
+        warning.textContent = "Passwords do not match";
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/signup`,{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({
+          username: username.value.trim(),
+          email: emailVal,
+          password: passVal,
+          role: role.value
+        })
+      });
+
+      const data = await res.json();
+
+      if(!res.ok){
+        warning.textContent = data.message || "Signup failed";
+        return;
+      }
+
+      alert("Signup successful! Please login.");
+      toggleForm();
       return;
     }
-    if(password.value !== confirm.value){
-      warning.textContent = "Passwords do not match";
-      return;
-    }
 
-    payload.username = username.value.trim();
-
-    const res = await fetch(`${API_BASE}/signup`,{
+    /* ========== LOGIN ========== */
+    const res = await fetch(`${API_BASE}/login`,{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify(payload)
+      body:JSON.stringify({
+        email: emailVal,
+        password: passVal
+      })
     });
 
     const data = await res.json();
 
     if(!res.ok){
-      warning.textContent = data.message;
+      warning.textContent = data.message || "Login failed";
       return;
     }
 
-    alert("Signup successful! Please login.");
-    toggleForm();
-    return;
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    window.location.href = "./index.html";
+
+  } catch (err) {
+    console.error("Auth error:", err);
+    warning.textContent = "Server error. Try again later.";
   }
-
- // ======================= LOGIN =======================
-try {
-  const res = await fetch(`${API_BASE}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    warning.textContent = data.message || "Login failed";
-    return;
-  }
-
-  localStorage.setItem("token", data.token);
-  localStorage.setItem("user", JSON.stringify(data.user));
-
-  window.location.href = "dashboard.html";
-
-} catch (error) {
-  console.error("Login error:", error);
-  warning.textContent = "Server error. Try again later.";
-}
-
-
-  // ✅ correct GitHub Pages redirect
-  window.location.href = "./index.html";
 };
 
-// Prevent logged-in users
+/* ================= AUTO REDIRECT ================= */
 if(localStorage.getItem("token")){
   window.location.href = "./index.html";
 }

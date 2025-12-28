@@ -1,4 +1,4 @@
-// ---------------------- ENV & IMPORTS ----------------------
+// ======================= ENV & IMPORTS =======================
 import dotenv from "dotenv";
 import express from "express";
 import bcrypt from "bcrypt";
@@ -6,36 +6,41 @@ import jwt from "jsonwebtoken";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import db from "./db.js";
 
-import db from "./db.js"; // ✅ IMPORTANT
+dotenv.config();
 
-// require("dotenv").config();
-
-
-// ---------------------- FIX __dirname (ES MODULE) ----------------------
+// ======================= FIX __dirname =======================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ---------------------- APP SETUP ----------------------
+// ======================= APP SETUP ===========================
 const app = express();
 
-app.use(cors());
-app.use(express.json()); // replaces body-parser
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// ---------------------- HEALTH CHECK ----------------------
+// ======================= HEALTH CHECK ========================
 app.get("/", (req, res) => {
-  res.send("🚀 Hierarchy System API is running successfully!");
+  res.status(200).send("🚀 Hierarchy System API is running");
 });
 
-// ---------------------- AUTH ----------------------
+// ============================================================
+// ======================= AUTH ===============================
+// ============================================================
 
-// SIGNUP
+// ----------------------- SIGNUP ------------------------------
 app.post("/signup", async (req, res) => {
   try {
     let { username, email, password, role } = req.body;
 
-    // 🔒 sanitize inputs
     username = username?.trim();
     email = email?.trim().toLowerCase();
     password = password?.trim();
@@ -45,73 +50,59 @@ app.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // check if email already exists
-    const [existingUsers] = await db.query(
+    const [existing] = await db.query(
       "SELECT id FROM users WHERE email = ?",
       [email]
     );
 
-    if (existingUsers.length > 0) {
+    if (existing.length > 0) {
       return res.status(409).json({ message: "Email already exists" });
     }
 
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // insert user
     await db.query(
       "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
       [username, email, hashedPassword, role]
     );
 
-    res.status(201).json({
-      message: "User registered successfully"
-    });
+    res.status(201).json({ message: "User registered successfully" });
 
   } catch (err) {
-    console.error("❌ Signup error:", err);
+    console.error("❌ SIGNUP ERROR:", err.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
-
-// LOGIN
-// ======================= LOGIN =======================
+// ----------------------- LOGIN -------------------------------
 app.post("/login", async (req, res) => {
   try {
-    console.log("REQ BODY:", req.body);
-
     const { email, password } = req.body || {};
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res.status(400).json({ message: "Email and password required" });
     }
 
-    console.log("EMAIL:", email);
+    if (!process.env.JWT_SECRET) {
+      console.error("❌ JWT_SECRET missing");
+      return res.status(500).json({ message: "Server misconfigured" });
+    }
 
     const [users] = await db.query(
-      "SELECT id, username, email, password, role FROM users WHERE email = ?",
+      "SELECT id, username, password, role FROM users WHERE email = ?",
       [email.toLowerCase()]
     );
-
-    console.log("USERS:", users);
 
     if (users.length === 0) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const user = users[0];
+    const match = await bcrypt.compare(password, user.password);
 
-    console.log("HASHED PASSWORD:", user.password);
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    console.log("PASSWORD MATCH:", isMatch);
-
-    if (!isMatch) {
+    if (!match) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-
-    console.log("JWT SECRET:", process.env.JWT_SECRET);
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
@@ -119,7 +110,7 @@ app.post("/login", async (req, res) => {
       { expiresIn: "2h" }
     );
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Login successful",
       token,
       user: {
@@ -130,35 +121,46 @@ app.post("/login", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("🔥 LOGIN ERROR FULL:", err);
-    return res.status(500).json({
-      message: "Internal Server Error",
-      error: err.message
-    });
+    console.error("🔥 LOGIN ERROR:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
+// ============================================================
+// ======================= JWT MIDDLEWARE =====================
+// ============================================================
+function verifyToken(req, res, next) {
+  const authHeader = req.headers.authorization;
 
+  if (!authHeader) {
+    return res.status(401).json({ message: "Token missing" });
+  }
 
-// ---------------------- PROTECTED ROUTE ----------------------
-app.get("/admin-only", (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "Access denied" });
+  const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.role !== "admin") {
-      return res.status(403).json({ message: "Admins only" });
-    }
-    res.json({ message: "Welcome Admin!" });
-  } catch {
-    res.status(400).json({ message: "Invalid token" });
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
+}
+
+// ============================================================
+// ======================= ADMIN ONLY =========================
+// ============================================================
+app.get("/admin-only", verifyToken, (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admins only" });
+  }
+  res.json({ message: "Welcome Admin!" });
 });
 
-// ---------------------- DOMAINS & INDUSTRIES ----------------------
+// ============================================================
+// ================= DOMAINS & INDUSTRIES =====================
+// ============================================================
 
-// GET all domains
+// GET domains (PUBLIC)
 app.get("/api/domains", async (req, res) => {
   try {
     const [rows] = await db.query(`
@@ -172,94 +174,122 @@ app.get("/api/domains", async (req, res) => {
       ORDER BY d.name, i.name
     `);
 
-    const domainsMap = {};
+    const map = {};
 
-    rows.forEach(row => {
-      if (!domainsMap[row.domain_id]) {
-        domainsMap[row.domain_id] = {
-          id: row.domain_id,
-          name: row.domain_name,
+    for (const r of rows) {
+      if (!map[r.domain_id]) {
+        map[r.domain_id] = {
+          id: r.domain_id,
+          name: r.domain_name,
           industries: []
         };
       }
-
-      if (row.industry_id) {
-        domainsMap[row.domain_id].industries.push({
-          id: row.industry_id,
-          name: row.industry_name
+      if (r.industry_id) {
+        map[r.domain_id].industries.push({
+          id: r.industry_id,
+          name: r.industry_name
         });
       }
-    });
+    }
 
-    res.json(Object.values(domainsMap));
+    res.json(Object.values(map));
+
   } catch (err) {
-    console.error("❌ Domains API Error:", err);
-    res.status(500).json({ error: "Failed to fetch domains" });
+    console.error("❌ DOMAINS ERROR:", err.message);
+    res.status(500).json({ message: "Failed to fetch domains" });
   }
 });
 
-// ADD domain
-app.post("/api/domains", async (req, res) => {
-  const { name } = req.body;
-  if (!name) return res.status(400).json({ message: "Domain name required" });
-
+// ADD domain (ADMIN)
+app.post("/api/domains", verifyToken, async (req, res) => {
   try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admins only" });
+    }
+
+    const name = req.body.name?.trim();
+    if (!name) {
+      return res.status(400).json({ message: "Domain name required" });
+    }
+
     const [result] = await db.query(
       "INSERT INTO domains (name) VALUES (?)",
       [name]
     );
-    res.status(201).json({ id: result.insertId, name, industries: [] });
+
+    res.status(201).json({ id: result.insertId, name });
+
   } catch (err) {
-    res.status(500).json({ error: "Failed to create domain" });
+    console.error("❌ ADD DOMAIN ERROR:", err.message);
+    res.status(500).json({ message: "Failed to create domain" });
   }
 });
 
-// ADD industry
-app.post("/api/domains/:domainId/industries", async (req, res) => {
-  const domainId = Number(req.params.domainId);
-  const { name } = req.body;
-
-  if (!domainId || !name) {
-    return res.status(400).json({ error: "Invalid domain ID or name" });
-  }
-
+// ADD industry (ADMIN)
+app.post("/api/domains/:domainId/industries", verifyToken, async (req, res) => {
   try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admins only" });
+    }
+
+    const domainId = Number(req.params.domainId);
+    const name = req.body.name?.trim();
+
+    if (!domainId || !name) {
+      return res.status(400).json({ message: "Invalid input" });
+    }
+
     await db.query(
       "INSERT INTO industries (name, domain_id) VALUES (?, ?)",
       [name, domainId]
     );
+
     res.status(201).json({ name, domain_id: domainId });
-  } catch {
-    res.status(500).json({ error: "Failed to create industry" });
+
+  } catch (err) {
+    console.error("❌ ADD INDUSTRY ERROR:", err.message);
+    res.status(500).json({ message: "Failed to create industry" });
   }
 });
 
-// DELETE domain
-app.delete("/api/domains/:domainId", async (req, res) => {
-  const domainId = Number(req.params.domainId);
-
+// DELETE domain (ADMIN)
+app.delete("/api/domains/:domainId", verifyToken, async (req, res) => {
   try {
-    await db.query("DELETE FROM industries WHERE domain_id = ?", [domainId]);
-    await db.query("DELETE FROM domains WHERE id = ?", [domainId]);
-    res.json({ message: "Domain deleted" });
-  } catch {
-    res.status(500).json({ error: "Failed to delete domain" });
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admins only" });
+    }
+
+    const id = Number(req.params.domainId);
+    await db.query("DELETE FROM industries WHERE domain_id = ?", [id]);
+    await db.query("DELETE FROM domains WHERE id = ?", [id]);
+
+    res.json({ message: "Domain deleted successfully" });
+
+  } catch (err) {
+    console.error("❌ DELETE DOMAIN ERROR:", err.message);
+    res.status(500).json({ message: "Delete failed" });
   }
 });
 
-// DELETE industry
-app.delete("/api/industries/:industryId", async (req, res) => {
-  const industryId = Number(req.params.industryId);
-
+// DELETE industry (ADMIN)
+app.delete("/api/industries/:industryId", verifyToken, async (req, res) => {
   try {
-    await db.query("DELETE FROM industries WHERE id = ?", [industryId]);
-    res.json({ message: "Industry deleted" });
-  } catch {
-    res.status(500).json({ error: "Failed to delete industry" });
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admins only" });
+    }
+
+    const id = Number(req.params.industryId);
+    await db.query("DELETE FROM industries WHERE id = ?", [id]);
+
+    res.json({ message: "Industry deleted successfully" });
+
+  } catch (err) {
+    console.error("❌ DELETE INDUSTRY ERROR:", err.message);
+    res.status(500).json({ message: "Delete failed" });
   }
 });
 
-// ---------------------- START SERVER ----------------------
+// ======================= START SERVER =======================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
