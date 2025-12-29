@@ -8,7 +8,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="manifest" href="/site.webmanifest">
+  <!-- <link rel="manifest" href="/site.webmanifest"> -->
   <title>OrgFlow — Company Hierarchy Manager</title>
 
   <!-- Favicon -->
@@ -96,17 +96,15 @@
   ================================ -->
   <script src="./public/script.js"></script>
   <script>
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+  if (!user) {
+    window.location.href = "./auth.html";
+  }
     // ================================
     // Role-based Access Control
     // ================================
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
 
-    if (!loggedInUser) {
-      // No logged-in user → redirect to login page
-      window.location.href = './auth.html';
-    }
-
-    const isAdmin = loggedInUser.role === 'admin';
 
     // Hide all edit/add/delete/create UI elements for non-admin users
     const addRootBtn = document.getElementById('add-root');

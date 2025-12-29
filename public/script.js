@@ -16,11 +16,14 @@
   const uid = (p = 'n') => p + '_' + Math.random().toString(36).slice(2, 9);
 
   // ---------- Role-based Access ----------
-  const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-  if (!loggedInUser) {
-    window.location.href = 'auth.html';
-  }
-  const isAdmin = loggedInUser.role === 'admin';
+ const user = JSON.parse(localStorage.getItem("user") || "null");
+
+if (!user) {
+  // not logged in → go to auth
+  window.location.href = "auth.html";
+} else {
+  console.log("Logged in as:", user.role);
+}
 
   // ---------- Roles ----------
   function renderRoles() {
